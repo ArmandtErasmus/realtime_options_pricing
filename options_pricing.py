@@ -25,7 +25,10 @@ def black_scholes(S, K, T, r, sigma, option_type="call"):
 def fetch_intraday_data(ticker, interval="1m"):
     tick = yf.Ticker(ticker)
     df = tick.history(interval=interval, period="1d")
-    df.drop(columns=["Dividends", "Stock Splits"], inplace=True)
+
+    # Keep only relevant columns
+    df = df[["Open", "High", "Low", "Close", "Volume"]]
+
     df.columns = ["open", "high", "low", "close", "volume"]
     df.index = df.index.tz_localize(None)
     df.index = df.index.to_pydatetime()
