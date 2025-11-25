@@ -13,7 +13,7 @@ def get_option_maturity_dates(symbol):
     asset = yf.Ticker(symbol)
     maturity_dates = asset.options
 
-    return maturity_dates
+    return list(maturity_dates)
 
 # get a dataframe containing a call or put option chain for a given maturity date, or the current asset price
 def get_option_data(symbol, maturity_date = None, derivative_type = "asset"):
@@ -61,8 +61,7 @@ def get_option_data(symbol, maturity_date = None, derivative_type = "asset"):
 
 def get_user_asset_info():
 
-
-    symbol = st.text_input("Enter Stock Symbol", placeholder="e.g. AAPL")
+    symbol = st.text_input("Enter a stock symbol", placeholder="e.g. AAPL")
 
     return symbol.upper()
 
@@ -84,28 +83,49 @@ def main():
 
     # dashboard
     try:
-        symbol = get_user_asset_info()
-        current_market_price = get_asset_info(symbol)
-        calls = get_option_data(symbol, maturity_date = None, derivative_type = "call")
-        puts = get_option_data(symbol, maturity_date = None, derivative_type = "put")
 
         col11, col12 = st.columns(2, border = True)
 
         with col11:
-            st.write(f"Asset: {symbol}")
+            symbol = get_user_asset_info()
 
         with col12:
-            st.write(f"Current Market Price: ${current_market_price}")
+            if symbol:
+                dates = get_option_maturity_dates(symbol)
+                maturity_date = st.selectbox(
+                    label="Select a maturity date",
+                    options=dates,
+                    placeholder="Select a maturity date"
+                )
+            else:
+                st.selectbox(
+                    label="Select a maturity date",
+                    options=[], 
+                    placeholder="Enter a symbol first"
+                )
 
-        st.subheader(f"Available Option Contracts for {symbol}:")
+
+        current_market_price = get_asset_info(symbol)
+        calls = get_option_data(symbol, maturity_date = maturity_date, derivative_type = "call")
+        puts = get_option_data(symbol, maturity_date = maturity_date, derivative_type = "put")
 
         col21, col22 = st.columns(2, border = True)
 
         with col21:
+            st.write(f"Asset: {symbol}")
+
+        with col22:
+            st.write(f"Current Market Price: ${current_market_price}")
+
+        st.subheader(f"Available Option Contracts for {symbol}:")
+
+        col31, col32 = st.columns(2, border = True)
+
+        with col31:
             st.subheader("Calls")
             st.dataframe(calls)
 
-        with col22:
+        with col32:
             st.subheader("Puts")
             st.dataframe(puts)
 
